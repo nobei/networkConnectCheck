@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,7 @@ import static java.util.concurrent.TimeUnit.*;
 @Data
 @Slf4j
 public class NetworkHandle {
-    private Map<String, NetworkEntity> networkEntityMap = new HashMap<String, NetworkEntity>();
+    private Map<String, NetworkEntity> networkEntityMap = new HashMap<>();
     private NetworkRecord networkRecord;
     private RECORDTYPE recordtype = null;
 
@@ -94,12 +95,11 @@ public class NetworkHandle {
             }
         }
 
-        Set<String> networkEntitySet = networkEntityMap.keySet();
-        for (String name : networkEntitySet) {
-            NetworkEntity networkEntity = networkEntityMap.get(name);
-            if (!entities.contains(networkEntity)) {  // 移除失效记录
-                networkRecord.networkRemove(networkEntity);
-                networkEntityMap.remove(networkEntity.getName());
+        for (Iterator it = networkEntityMap.entrySet().iterator();it.hasNext();) {
+            Map.Entry<String, NetworkEntity> entry = (Map.Entry) it.next();
+            if (!entities.contains(entry.getValue())) {  // 移除失效记录
+                networkRecord.networkRemove(entry.getValue());
+                it.remove();
             }
         }
 
